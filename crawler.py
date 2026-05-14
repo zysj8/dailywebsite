@@ -7,31 +7,31 @@ BASE_URL = "https://www.yudou789.top"
 today_str = datetime.now().strftime("%Y%m%d")
 today_cn = datetime.now().strftime("%Y年%m月%d日")
 
-# 伪装浏览器请求头
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
     "Referer": BASE_URL
 }
 
 def get_latest_post_url():
-    """从首页找到当天日期的文章链接"""
+    """从首页找到含当天日期的第一篇文章"""
     print(f"🔍 正在从 {BASE_URL} 寻找含「{today_cn}」的文章...")
     try:
         resp = requests.get(BASE_URL, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # 打印首页所有a标签的标题和链接，方便调试
-        print("📄 首页文章列表：")
-        for a in soup.find_all("a", href=True):
-            title = a.get("title", "").strip()
-            href = a["href"]
-            print(f"  - 标题: {title}, 链接: {href}")
-
+        # 找所有文章标题（写在 h2 标签里）
+        articles = soup.find_all("h2")
+        for h2 in articles:
+            title = h2.get_text(strip=True)
             if today_cn in title:
-                full_url = BASE_URL + href if not href.startswith("http") else href
-                print(f"✅ 找到目标文章: {full_url}")
-                return full_url
+                # 找到标题里的链接
+                link_tag = h2.find("a", href=True)
+                if link_tag:
+                    href = link_tag["href"]
+                    full_url = BASE_URL + href if not href.startswith("http") else href
+                    print(f"✅ 找到目标文章: {full_url}")
+                    return full_url
 
         print(f"❌ 未找到含「{today_cn}」的文章")
         return None
@@ -49,8 +49,8 @@ def extract_txt_link(post_url):
         resp.raise_for_status()
         html = resp.text
 
-        # 匹配含 YYYYMMDD 且以 .txt 结尾的链接，放宽匹配规则
-        pattern = re.compile(r'https?://.*?' + re.escape(today_str) + r'.*?\.txt', re.IGNORECASE)
+        # 匹配含 YYYYMMDD 且以 .txt 结尾的链接
+        pattern = re.compile(r'https?://[^\s"]+?' + re.escape(today_str) + r'[^\s"]*?\.txt', re.IGNORECASE)
         matches = pattern.findall(html)
 
         if matches:
@@ -58,9 +58,6 @@ def extract_txt_link(post_url):
             return matches[0]
         else:
             print(f"❌ 未找到含「{today_str}」的 .txt 链接")
-            # 打印部分网页源码，方便调试
-            print("📄 文章源码片段（前2000字符）：")
-            print(html[:2000])
             return None
     except Exception as e:
         print(f"❌ 访问文章失败: {e}")
