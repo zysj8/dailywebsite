@@ -1,19 +1,20 @@
 name: Daily Crawl & Deploy
 on:
   schedule:
-    # 每天 UTC 时间 0 点（北京时间 8 点）运行一次，可自行调整
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 允许手动触发测试
+  workflow_dispatch:
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 关键：赋予 Actions 写仓库的权限
     steps:
       - name: 拉取仓库代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5  # 升级到支持 Node.js 24 的版本
 
       - name: 设置 Python 环境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6  # 升级到支持 Node.js 24 的版本
         with:
           python-version: "3.11"
 
@@ -27,8 +28,8 @@ jobs:
 
       - name: 提交更新到仓库
         run: |
-          git config --local user.email "github-actions@example.com"
+          git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
           git add index.html
-          git commit -m "更新每日链接 $(date +'%Y-%m-%d')" || echo "没有新变化，无需提交"
+          git commit -m "更新每日链接 $(date +'%Y-%m-%d')" || echo "无新链接，无需提交"
           git push
