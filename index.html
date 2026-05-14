@@ -3,19 +3,80 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>今日节点链接</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日订阅链接</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
-        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
-        .link { font-size: 18px; color: #007bff; word-break: break-all; margin-top: 20px; }
-        .error { color: #dc3545; font-size: 18px; margin-top: 20px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .link-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 16px;
+            word-break: break-all;
+            font-size: 16px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:hover {
+            background: #0069d9;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>今日（2026年05月14日）节点订阅链接</h1>
-        <p class="link">✅ https://hh.yudou226.top/202605/20260514bah4se.txt</p>
+        <h1>📅 2026年05月14日 订阅链接</h1>
+        <div class="link-box" id="link">https://hh.yudou226.top/202605/20260514bah4se.txt</div><button class="copy-btn" onclick="copy()">🔗 一键复制</button>
     </div>
+
+    <script>
+        function copy() {
+            let text = document.getElementById('link').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ 复制成功！');
+            });
+        }
+    </script>
 </body>
 </html>
     
