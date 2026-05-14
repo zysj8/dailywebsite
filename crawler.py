@@ -9,44 +9,61 @@ today_cn = datetime.now().strftime("%Y年%m月%d日")
 
 # 伪装浏览器请求头
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    "Referer": BASE_URL
 }
 
 def get_latest_post_url():
     """从首页找到当天日期的文章链接"""
+    print(f"🔍 正在从 {BASE_URL} 寻找含「{today_cn}」的文章...")
     try:
-        resp = requests.get(BASE_URL, headers=HEADERS, timeout=10)
+        resp = requests.get(BASE_URL, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # 遍历所有文章链接，匹配标题中的日期
+        # 打印首页所有a标签的标题和链接，方便调试
+        print("📄 首页文章列表：")
         for a in soup.find_all("a", href=True):
-            title = a.get("title", "")
-            if today_cn in title:
-                return BASE_URL + a["href"] if not a["href"].startswith("http") else a["href"]
+            title = a.get("title", "").strip()
+            href = a["href"]
+            print(f"  - 标题: {title}, 链接: {href}")
 
-        # 如果没找到当天的文章，返回 None
+            if today_cn in title:
+                full_url = BASE_URL + href if not href.startswith("http") else href
+                print(f"✅ 找到目标文章: {full_url}")
+                return full_url
+
+        print(f"❌ 未找到含「{today_cn}」的文章")
         return None
     except Exception as e:
-        print(f"获取文章链接失败: {e}")
+        print(f"❌ 获取首页失败: {e}")
         return None
 
 def extract_txt_link(post_url):
     """从文章源码中提取含 today_str 的 .txt 链接"""
     if not post_url:
         return None
+    print(f"🔍 正在解析文章 {post_url} 中的 .txt 链接...")
     try:
-        resp = requests.get(post_url, headers=HEADERS, timeout=10)
+        resp = requests.get(post_url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         html = resp.text
 
-        # 匹配含 YYYYMMDD 且以 .txt 结尾的链接
-        pattern = re.compile(r'https?://[^\s"]+?' + re.escape(today_str) + r'[^\s"]*?\.txt', re.IGNORECASE)
+        # 匹配含 YYYYMMDD 且以 .txt 结尾的链接，放宽匹配规则
+        pattern = re.compile(r'https?://.*?' + re.escape(today_str) + r'.*?\.txt', re.IGNORECASE)
         matches = pattern.findall(html)
 
-        return matches[0] if matches else None
+        if matches:
+            print(f"✅ 找到链接: {matches[0]}")
+            return matches[0]
+        else:
+            print(f"❌ 未找到含「{today_str}」的 .txt 链接")
+            # 打印部分网页源码，方便调试
+            print("📄 文章源码片段（前2000字符）：")
+            print(html[:2000])
+            return None
     except Exception as e:
-        print(f"爬取文章失败: {e}")
+        print(f"❌ 访问文章失败: {e}")
         return None
 
 def generate_html(link):
@@ -79,4 +96,4 @@ if __name__ == "__main__":
     post_url = get_latest_post_url()
     txt_link = extract_txt_link(post_url)
     generate_html(txt_link)
-    print("脚本运行完成，已生成 index.html")
+    print("✅ 脚本运行完成，已生成 index.html")
