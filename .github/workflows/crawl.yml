@@ -1,8 +1,8 @@
 name: Daily Crawl & Deploy
 on:
   schedule:
-    - cron: '30 2 * * *'  # 每天北京时间 10:30 运行
-  workflow_dispatch:
+    - cron: '30 2 * * *'  # 每天 10:30 北京时间
+  workflow_dispatch:      # 允许手动运行
 
 jobs:
   crawl:
@@ -10,25 +10,29 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 拉取代码
+      - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 设置 Python
+      - name: Set Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
-      - name: 安装依赖
+      - name: Install Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: 运行爬虫
+      - name: Run Crawler
         run: python crawler.py
 
-      - name: 提交更新
+      - name: Commit & Push
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add index.html
-          git commit -m "自动更新 $(date +'%Y-%m-%d') 链接" || exit 0
+          git commit -m "Auto update $(date +'%Y-%m-%d')" || exit 0
           git push
